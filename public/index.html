@@ -106,6 +106,16 @@
       pointer-events: auto;
     }
 
+    #welcomePage {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #wallPage {
+      padding: 0;
+      overflow: hidden;
+    }
+
     .glass-panel {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -145,27 +155,60 @@
 
     .welcome-cinematic {
       position: relative;
-      width: min(100%, 1240px);
-      height: min(88vh, 920px);
-      border-radius: 36px;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
       overflow: hidden;
-      border: 1px solid rgba(125, 121, 197, 0.68);
-      box-shadow: 0 30px 90px rgba(19, 18, 46, 0.42);
-      background: rgba(9, 8, 23, 0.22);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .welcome-hero-stage {
+      position: absolute;
+      inset: 0;
+      --welcome-hero-strip-width: 100vw;
+      --welcome-hero-overlap-px: 72px;
+      --welcome-hero-drift: 120px;
+      overflow: hidden;
+      transform-origin: 50% 50%;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+    }
+
+    .welcome-hero-track {
+      position: absolute;
+      top: -8%;
+      left: 0;
+      width: calc(var(--welcome-hero-strip-width) * 2 - var(--welcome-hero-overlap-px));
+      height: 116%;
+      transform: translate3d(0, 0, 0);
+      transform-origin: 50% 50%;
+      will-change: transform;
+      backface-visibility: hidden;
+      pointer-events: none;
+      animation: heroTrackDrift 18s ease-in-out infinite alternate;
     }
 
     .welcome-hero-media {
       position: absolute;
-      inset: 0;
-      background-image: var(--hero-image);
-      background-size: 96% auto;
-      background-repeat: no-repeat;
-      background-position: center 56%;
-      transform: scale(1.04);
-      animation: heroDrift 11s ease-in-out infinite alternate;
-      filter: saturate(1.02) brightness(0.92);
+      top: 0;
+      width: var(--welcome-hero-strip-width);
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      filter: saturate(1.01) brightness(0.9);
+      will-change: opacity;
+    }
+
+    .welcome-hero-media.is-primary {
+      left: 0;
+    }
+
+    .welcome-hero-media.is-secondary {
+      left: calc(var(--welcome-hero-strip-width) - var(--welcome-hero-overlap-px));
     }
 
     .welcome-hero-overlay {
@@ -176,6 +219,19 @@
         radial-gradient(circle at 62% 72%, rgba(255, 213, 185, 0.24), transparent 18%),
         radial-gradient(circle at 76% 68%, rgba(255, 228, 215, 0.16), transparent 10%),
         radial-gradient(circle at 52% 18%, rgba(196, 175, 255, 0.26), transparent 32%);
+    }
+
+    .welcome-hero-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 82% 28%, rgba(255, 227, 198, 0.12), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(12, 10, 28, 0.1));
+      mix-blend-mode: soft-light;
+      opacity: 0.88;
+      pointer-events: none;
     }
 
     .welcome-hero-glow {
@@ -203,22 +259,72 @@
     }
 
     .wall-hero-media {
+      overflow: hidden;
       background-image: var(--wall-image);
       background-size: cover;
       background-repeat: no-repeat;
-      background-position: center 52%;
-      filter: saturate(1.04) brightness(0.82);
-      animation: wallDrift 12s ease-in-out infinite alternate;
-      transform: scale(1.1);
+      background-position: center center;
+      filter: saturate(1) brightness(0.78);
+      animation: wallDrift 18s ease-in-out infinite alternate;
+      transform: scale(1.08);
       z-index: 0;
+    }
+
+    .wall-hero-media::before,
+    .wall-hero-media::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 34%;
+      background-image: var(--wall-image);
+      background-size: cover;
+      background-repeat: no-repeat;
+      pointer-events: none;
+    }
+
+    .wall-hero-media::before {
+      left: -18%;
+      background-position: left center;
+      transform: scale(1.06);
+    }
+
+    .wall-hero-media::after {
+      right: -18%;
+      background-position: right center;
+      transform: scale(1.06);
     }
 
     .wall-hero-overlay {
       background:
         radial-gradient(circle at 50% 22%, rgba(194, 203, 255, 0.28), transparent 28%),
         radial-gradient(circle at 68% 68%, rgba(255, 187, 169, 0.18), transparent 20%),
-        linear-gradient(180deg, rgba(15, 12, 33, 0.10) 0%, rgba(14, 11, 32, 0.24) 40%, rgba(8, 8, 24, 0.68) 100%);
+        linear-gradient(180deg, rgba(15, 12, 33, 0.14) 0%, rgba(14, 11, 32, 0.3) 40%, rgba(8, 8, 24, 0.76) 100%);
       z-index: 1;
+    }
+
+    .wall-hero-overlay::after {
+      content: '';
+      position: absolute;
+      right: -10%;
+      bottom: -14%;
+      width: min(44vw, 560px);
+      height: min(44vw, 560px);
+      background: radial-gradient(circle, rgba(8, 8, 24, 0.98) 0%, rgba(8, 8, 24, 0.9) 38%, rgba(8, 8, 24, 0.42) 68%, transparent 86%);
+      filter: blur(22px);
+      opacity: 1;
+    }
+
+    .wall-hero-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 22% 24%, rgba(255,255,255,0.08), transparent 18%),
+        radial-gradient(circle at 74% 62%, rgba(255, 226, 200, 0.08), transparent 18%),
+        linear-gradient(135deg, transparent 54%, rgba(8, 8, 24, 0.12) 68%, rgba(8, 8, 24, 0.34) 82%, rgba(8, 8, 24, 0.52) 100%);
+      mix-blend-mode: soft-light;
+      opacity: 0.92;
     }
 
     .wall-hero-glow {
@@ -229,9 +335,9 @@
       height: min(18vw, 240px);
       transform: translateX(-50%);
       background: radial-gradient(circle, rgba(255, 205, 160, 0.24) 0%, rgba(255, 176, 198, 0.10) 40%, transparent 72%);
-      filter: blur(28px);
+      filter: blur(24px);
       z-index: 1;
-      animation: glowPulse 5.8s ease-in-out infinite;
+      animation: glowPulse 7.4s ease-in-out infinite;
     }
 
     .wall-particle-field,
@@ -350,30 +456,39 @@
       background: linear-gradient(90deg, transparent, rgba(246, 225, 164, 0.92), transparent);
     }
 
-    @keyframes heroDrift {
+    @keyframes heroTrackDrift {
       0% {
-        transform: scale(1.06) translate3d(-2.2%, -1.6%, 0);
+        transform: translate3d(0, -0.35%, 0);
       }
       100% {
-        transform: scale(1.15) translate3d(2.5%, 1.9%, 0);
+        transform: translate3d(calc(-1 * var(--welcome-hero-drift)), 0.35%, 0);
+      }
+    }
+
+    @keyframes heroDrift {
+      0% {
+        transform: scale(1.14) translate3d(-0.12%, -0.08%, 0);
+      }
+      100% {
+        transform: scale(1.15) translate3d(0.12%, 0.08%, 0);
       }
     }
 
     @keyframes wallDrift {
       0% {
-        transform: scale(1.1) translate3d(-2.1%, -1.4%, 0);
+        transform: scale(1.08) translate3d(-0.22%, -0.18%, 0);
       }
       100% {
-        transform: scale(1.18) translate3d(2.4%, 2.1%, 0);
+        transform: scale(1.08) translate3d(0.22%, 0.18%, 0);
       }
     }
 
     @keyframes wallRayShift {
       0% {
-        transform: translate3d(-4%, -2%, 0) scale(1.03);
+        transform: translate3d(-1.5%, -0.8%, 0) scale(1.01);
       }
       100% {
-        transform: translate3d(4%, 2%, 0) scale(1.12);
+        transform: translate3d(1.6%, 0.9%, 0) scale(1.04);
       }
     }
 
@@ -663,16 +778,17 @@
       position: relative;
       width: min(100%, 940px);
       height: min(58vh, 620px);
-      padding: 40px 18px 56px;
+      padding: 42px 28px 64px;
       overflow-y: auto;
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
       scroll-behavior: smooth;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 228, 212, 0.38) transparent;
+      overscroll-behavior: contain;
     }
 
     .memory-lyrics-scene::-webkit-scrollbar {
@@ -690,12 +806,14 @@
 
     .memory-lyrics-line {
       position: relative;
-      width: min(100%, 760px);
+      width: 100%;
+      max-width: min(100%, var(--memory-line-measure, 28ch));
       margin: 0;
       white-space: pre-wrap;
       text-align: center;
-      line-height: 1.9;
-      letter-spacing: 0.03em;
+      text-wrap: pretty;
+      line-height: 1.96;
+      letter-spacing: 0.018em;
       color: rgba(255, 244, 237, 0.36);
       font-size: clamp(21px, 2vw, 31px);
       filter: blur(3px);
@@ -705,12 +823,22 @@
       pointer-events: none;
       will-change: transform, opacity, filter;
       transition: min-height 0.25s ease;
+      padding-inline: 8px;
     }
 
     .memory-lyrics-line.empty {
       min-height: 34px;
       line-height: 34px;
       opacity: 0.18;
+    }
+
+    .memory-lyrics-line.long {
+      text-align: left;
+      padding-inline: 16px;
+    }
+
+    .memory-lyrics-line.short {
+      letter-spacing: 0.04em;
     }
 
     .memory-dust-layer {
@@ -852,6 +980,12 @@
       border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
+    .wish-card[data-empty="true"] {
+      border-style: dashed;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
     .wish-card::before {
       content: '';
       position: absolute;
@@ -863,6 +997,11 @@
     .wish-card:hover {
       box-shadow: 0 28px 70px rgba(255, 179, 199, 0.18);
       border-color: rgba(255, 255, 255, 0.32);
+    }
+
+    .wish-card[data-empty="true"]:hover {
+      box-shadow: 0 14px 34px rgba(10, 10, 28, 0.18);
+      border-color: rgba(255, 255, 255, 0.14);
     }
 
     .wish-card-inner {
@@ -1181,8 +1320,8 @@
 
     .ask-submit:hover,
     .ask-nav-button:hover {
-      transform: translateY(-1px);
       background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
     @media (max-width: 1024px) {
@@ -1197,9 +1336,17 @@
         padding: 18px;
       }
 
+      #welcomePage {
+        padding: 0;
+      }
+
+      #wallPage {
+        padding: 0;
+      }
+
       .welcome-cinematic {
-        height: min(90vh, 860px);
-        border-radius: 28px;
+        height: 100%;
+        border-radius: 0;
       }
 
       .welcome-content {
@@ -1248,7 +1395,12 @@
     <section id="welcomePage" class="page active">
       <button id="welcomeAudioToggle" class="ask-nav-button music-toggle absolute right-6 top-6 z-20" type="button">首页音乐：开</button>
       <div class="welcome-cinematic">
-        <div class="welcome-hero-media"></div>
+        <div class="welcome-hero-stage" aria-hidden="true">
+          <div class="welcome-hero-track">
+            <img class="welcome-hero-media is-primary" src="./assets/images/welcome-hero.png" alt="" draggable="false" />
+            <img class="welcome-hero-media is-secondary" src="./assets/images/welcome-hero.png" alt="" draggable="false" />
+          </div>
+        </div>
         <div class="welcome-hero-overlay"></div>
         <div class="welcome-hero-glow"></div>
         <div class="welcome-figure-focus"></div>
@@ -1486,7 +1638,8 @@
       lineInterval: 1650,
       entranceDuration: 0.95,
       endingDuration: 5.8,
-      visibleRadius: 7
+      visibleRadius: 7,
+      edgeSnapLines: 4
     };
 
     const MEMORY_LINES = [
@@ -1751,6 +1904,9 @@
     };
 
     const startButton = document.getElementById('startButton');
+    const welcomeHeroStage = document.querySelector('.welcome-hero-stage');
+    const welcomeHeroTrack = document.querySelector('.welcome-hero-track');
+    const welcomeHeroMedia = Array.from(document.querySelectorAll('.welcome-hero-media'));
     const welcomeParticleField = document.getElementById('welcomeParticleField');
     const welcomeSparkles = document.getElementById('welcomeSparkles');
     const welcomeShootingStars = document.getElementById('welcomeShootingStars');
@@ -1817,10 +1973,13 @@
     const memoryPlaybackState = {
       currentIndex: 0,
       wheelLockedUntil: 0,
-      finaleShown: false
+      finaleShown: false,
+      manualInteractingUntil: 0,
+      suppressNextScrollEvent: false
     };
     let memoryLyricsScene = null;
     let memorySequenceBag = [];
+    let wishCards = [];
     let wallFragmentTimer = null;
     let wallFragmentShownForCurrentZoom = false;
     let askFragmentTimer = null;
@@ -1866,7 +2025,7 @@
       particlesJS('particles-js', {
         particles: {
           number: {
-            value: window.innerWidth < 768 ? 38 : 58,
+            value: window.innerWidth < 768 ? 14 : 24,
             density: { enable: true, value_area: 900 }
           },
           color: { value: ['#ffd2df', '#c7b2ff', '#f6e1a4', '#ffffff'] },
@@ -1874,7 +2033,7 @@
           opacity: { value: 0.36, random: true },
           size: { value: 3.2, random: true },
           line_linked: {
-            enable: true,
+            enable: false,
             distance: 138,
             color: '#ffffff',
             opacity: 0.12,
@@ -1911,6 +2070,18 @@
 
     function randomBetween(min, max) {
       return min + Math.random() * (max - min);
+    }
+
+    function syncWelcomeHeroStrip() {
+      if (!welcomeHeroStage) return;
+
+      const stageWidth = Math.max(1, welcomeHeroStage.clientWidth);
+      const overlapPx = Math.round(Math.max(48, Math.min(stageWidth * 0.08, 120)));
+      const driftPx = Math.round(Math.max(56, Math.min(stageWidth * 0.12, 140)));
+
+      welcomeHeroStage.style.setProperty('--welcome-hero-strip-width', `${stageWidth}px`);
+      welcomeHeroStage.style.setProperty('--welcome-hero-overlap-px', `${overlapPx}px`);
+      welcomeHeroStage.style.setProperty('--welcome-hero-drift', `${driftPx}px`);
     }
 
     function shuffleItems(items) {
@@ -2277,9 +2448,9 @@
       welcomeSparkles.innerHTML = '';
       welcomeShootingStars.innerHTML = '';
 
-      const particleCount = window.innerWidth < 768 ? 24 : 40;
-      const sparkleCount = window.innerWidth < 768 ? 20 : 36;
-      const shootingCount = window.innerWidth < 768 ? 5 : 7;
+      const particleCount = window.innerWidth < 768 ? 10 : 18;
+      const sparkleCount = window.innerWidth < 768 ? 10 : 16;
+      const shootingCount = window.innerWidth < 768 ? 2 : 4;
 
       for (let i = 0; i < particleCount; i += 1) {
         const particle = document.createElement('span');
@@ -2342,8 +2513,8 @@
       wallParticleField.innerHTML = '';
       wallSparkles.innerHTML = '';
 
-      const particleCount = window.innerWidth < 768 ? 20 : 34;
-      const sparkleCount = window.innerWidth < 768 ? 18 : 30;
+      const particleCount = window.innerWidth < 768 ? 10 : 16;
+      const sparkleCount = window.innerWidth < 768 ? 8 : 14;
 
       for (let i = 0; i < particleCount; i += 1) {
         const particle = document.createElement('span');
@@ -2428,6 +2599,8 @@
       memoryPlaybackState.currentIndex = 0;
       memoryPlaybackState.wheelLockedUntil = 0;
       memoryPlaybackState.finaleShown = false;
+      memoryPlaybackState.manualInteractingUntil = 0;
+      memoryPlaybackState.suppressNextScrollEvent = false;
       memoryStage?.classList.remove('memory-finale');
       memoryPanel?.classList.remove('memory-finale');
       memoryTextContainer.innerHTML = '';
@@ -2678,11 +2851,74 @@
 
       const dustMarkup = `<div class="memory-dust-layer">${createMemoryDust(finale ? 96 : 18)}</div>`;
       const linesMarkup = MEMORY_LINES.map((line, index) => (
-        `<p class="memory-lyrics-line${line.trim() ? '' : ' empty'}" data-index="${index}">${line || ''}</p>`
+        `<p class="${getMemoryLineClassName(line)}" data-index="${index}" style="--memory-line-measure:${getMemoryLineMeasure(line)};">${line || ''}</p>`
       )).join('');
 
       scene.innerHTML = `${dustMarkup}${linesMarkup}`;
+      scene.addEventListener('scroll', handleMemorySceneScroll, { passive: true });
       return scene;
+    }
+
+    function getMemoryLineMeasure(line) {
+      const content = String(line || '').trim();
+      const length = content.length;
+
+      if (!length) return '100%';
+      if (length >= 44) return '27ch';
+      if (length >= 28) return '24ch';
+      if (length >= 16) return '20ch';
+      return '14ch';
+    }
+
+    function getMemoryLineClassName(line) {
+      const content = String(line || '').trim();
+      const length = content.length;
+      const classes = ['memory-lyrics-line'];
+
+      if (!length) {
+        classes.push('empty');
+      } else if (length >= 28) {
+        classes.push('long');
+      } else if (length <= 8) {
+        classes.push('short');
+      }
+
+      return classes.join(' ');
+    }
+
+    function getMemoryScrollTarget(scene, activeLine, activeIndex) {
+      const maxScrollTop = Math.max(0, scene.scrollHeight - scene.clientHeight);
+      if (!activeLine || maxScrollTop <= 0) return 0;
+
+      if (activeIndex <= 1) {
+        return 0;
+      }
+
+      if (activeIndex >= MEMORY_LINES.length - MEMORY_CONFIG.edgeSnapLines) {
+        return maxScrollTop;
+      }
+
+      const centeredTop = activeLine.offsetTop - (scene.clientHeight / 2) + (activeLine.clientHeight / 2);
+      return Math.max(0, Math.min(maxScrollTop, centeredTop));
+    }
+
+    function beginMemoryManualInteraction(duration = 4200) {
+      memoryPlaybackState.manualInteractingUntil = Date.now() + duration;
+    }
+
+    function isMemoryManualInteracting() {
+      return Date.now() < memoryPlaybackState.manualInteractingUntil;
+    }
+
+    function handleMemorySceneScroll() {
+      if (memoryPlaybackState.suppressNextScrollEvent) {
+        memoryPlaybackState.suppressNextScrollEvent = false;
+        return;
+      }
+
+      beginMemoryManualInteraction(5200);
+      clearTimeout(autoAdvanceTimeout);
+      autoAdvanceTimeout = null;
     }
 
     function getMemoryLineVisual(offset) {
@@ -2791,11 +3027,9 @@
       });
 
       const activeLine = scene.querySelector(`.memory-lyrics-line[data-index="${activeIndex}"]`);
-      if (activeLine) {
-        const targetTop = Math.max(
-          0,
-          activeLine.offsetTop - (scene.clientHeight / 2) + (activeLine.clientHeight / 2)
-        );
+      if (activeLine && (!isMemoryManualInteracting() || immediate)) {
+        const targetTop = getMemoryScrollTarget(scene, activeLine, activeIndex);
+        memoryPlaybackState.suppressNextScrollEvent = true;
         scene.scrollTo({
           top: targetTop,
           behavior: immediate ? 'auto' : 'smooth'
@@ -2845,7 +3079,7 @@
       }, WELCOME_EASTER_EGG_DELAY);
     }
 
-    function showMemoryLyricsFrame(activeIndex) {
+    function showMemoryLyricsFrame(activeIndex, immediate = false) {
       memoryPlaybackState.currentIndex = activeIndex;
       memoryPlaybackState.finaleShown = false;
       memoryStage?.classList.remove('memory-finale');
@@ -2856,12 +3090,12 @@
         memoryTextContainer.appendChild(memoryLyricsScene);
         applyMemoryLyricsState(memoryLyricsScene, activeIndex, false, true);
       } else {
-        applyMemoryLyricsState(memoryLyricsScene, activeIndex, false, false);
+        applyMemoryLyricsState(memoryLyricsScene, activeIndex, false, immediate);
       }
       updateMemoryFocus(activeIndex);
     }
 
-    function showMemoryEnding(activeIndex) {
+    function showMemoryEnding(activeIndex, immediate = false) {
       memoryPlaybackState.currentIndex = activeIndex;
       memoryPlaybackState.finaleShown = true;
       memoryStage?.classList.add('memory-finale');
@@ -2876,32 +3110,37 @@
         dustLayer.innerHTML = createMemoryDust(96);
       }
       updateMemoryFocus(activeIndex);
-      applyMemoryLyricsState(memoryLyricsScene, activeIndex, true, false);
+      applyMemoryLyricsState(memoryLyricsScene, activeIndex, true, immediate);
     }
 
     function scheduleMemoryAutoAdvance(delay = MEMORY_CONFIG.lineInterval) {
       clearTimeout(autoAdvanceTimeout);
       autoAdvanceTimeout = setTimeout(() => {
         if (currentStage !== 'memory') return;
+        if (isMemoryManualInteracting()) {
+          const remaining = Math.max(160, memoryPlaybackState.manualInteractingUntil - Date.now());
+          scheduleMemoryAutoAdvance(remaining);
+          return;
+        }
 
         if (memoryPlaybackState.currentIndex >= MEMORY_LINES.length - 1) {
           if (memoryPlaybackState.finaleShown) {
             enterWall();
             return;
           }
-          showMemoryEnding(MEMORY_LINES.length - 1);
+          showMemoryEnding(MEMORY_LINES.length - 1, false);
           scheduleMemoryAutoAdvance(MEMORY_CONFIG.endingDuration * 1000);
           return;
         }
 
         const nextIndex = Math.min(MEMORY_LINES.length - 1, memoryPlaybackState.currentIndex + 1);
         if (nextIndex >= MEMORY_LINES.length - 1) {
-          showMemoryEnding(MEMORY_LINES.length - 1);
+          showMemoryEnding(MEMORY_LINES.length - 1, false);
           scheduleMemoryAutoAdvance(MEMORY_CONFIG.endingDuration * 1000);
           return;
         }
 
-        showMemoryLyricsFrame(nextIndex);
+        showMemoryLyricsFrame(nextIndex, false);
         scheduleMemoryAutoAdvance(MEMORY_CONFIG.lineInterval);
       }, delay);
     }
@@ -2924,6 +3163,7 @@
       typingTimeouts = [];
       clearTimeout(autoAdvanceTimeout);
       autoAdvanceTimeout = null;
+      beginMemoryManualInteraction();
 
       const direction = event.deltaY > 0 ? 1 : -1;
       const step = Math.abs(event.deltaY) > 80 ? 2 : 1;
@@ -2937,18 +3177,18 @@
           enterWall();
           return;
         }
-        showMemoryEnding(MEMORY_LINES.length - 1);
+        showMemoryEnding(MEMORY_LINES.length - 1, true);
         scheduleMemoryAutoAdvance(MEMORY_CONFIG.endingDuration * 1000);
         return;
       }
 
       if (nextIndex >= MEMORY_LINES.length - 1 && direction > 0) {
-        showMemoryEnding(MEMORY_LINES.length - 1);
+        showMemoryEnding(MEMORY_LINES.length - 1, true);
         scheduleMemoryAutoAdvance(MEMORY_CONFIG.endingDuration * 1000);
         return;
       }
 
-      showMemoryLyricsFrame(nextIndex);
+      showMemoryLyricsFrame(nextIndex, true);
       scheduleMemoryAutoAdvance(MEMORY_CONFIG.lineInterval);
     }
 
@@ -3039,14 +3279,14 @@
       card.style.setProperty('--card-width', `${metrics.cardWidth}px`);
       card.style.setProperty('--card-height', `${metrics.cardHeight}px`);
       if (isEmptySlot) {
-        card.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))';
-        card.style.borderColor = 'rgba(255,255,255,0.12)';
-        card.style.boxShadow = '0 12px 32px rgba(10, 10, 28, 0.18)';
+        card.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))';
+        card.style.borderColor = 'rgba(255,255,255,0.14)';
+        card.style.boxShadow = '0 12px 32px rgba(10, 10, 28, 0.16)';
         card.innerHTML = `
           <div class="wish-card-inner">
             <div class="text-center">
-              <p class="text-base font-semibold text-white/52">待填写</p>
-              <p class="mt-2 text-xs text-white/36 leading-relaxed">这个位置会优先被新的卡片内容补上</p>
+              <p class="inline-flex rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/52">待填写</p>
+              <p class="mt-3 text-sm font-medium text-white/42 leading-relaxed">这个位置会优先被新的卡片内容补上</p>
             </div>
           </div>
         `;
@@ -3094,7 +3334,7 @@
 
     function renderWishWall() {
       cardOrbit.innerHTML = '';
-      const totalSlots = Math.max(60, friendWishesState.length);
+      const totalSlots = Math.min(32, Math.max(friendWishesState.length + 4, 20));
       const metrics = getWishWallMetrics(totalSlots);
       cardOrbit.dataset.wallRadius = metrics.radius.toFixed(2);
       const cardsForRender = Array.from({ length: totalSlots }, (_, sourceIndex) => ({
@@ -3109,7 +3349,8 @@
       });
       
       // 从中心炸开散开的进场动画
-      const cards = cardOrbit.querySelectorAll('.wish-card');
+      wishCards = Array.from(cardOrbit.querySelectorAll('.wish-card'));
+      const cards = wishCards;
       cards.forEach((card, index) => {
         const x = parseFloat(card.dataset.originalX);
         const y = parseFloat(card.dataset.originalY);
@@ -3263,15 +3504,15 @@
 
     function animateOrbit() {
       if (!rotationState.isDragging) {
-        rotationState.baseY += rotationState.autoRotate * 2.8;
-        rotationState.targetY += (rotationState.baseY - rotationState.targetY) * 0.08;
-        rotationState.targetX += ((-8) - rotationState.targetX) * 0.08;
+        rotationState.baseY += rotationState.autoRotate * 1.55;
+        rotationState.targetY += (rotationState.baseY - rotationState.targetY) * 0.05;
+        rotationState.targetX += ((-6) - rotationState.targetX) * 0.05;
       }
       rotationState.targetX = clamp(rotationState.targetX, -24, 24);
-      rotationState.velocityX += (rotationState.targetX - rotationState.currentX) * 0.08;
-      rotationState.velocityY += (rotationState.targetY - rotationState.currentY) * 0.08;
-      rotationState.velocityX *= 0.86;
-      rotationState.velocityY *= 0.90;
+      rotationState.velocityX += (rotationState.targetX - rotationState.currentX) * 0.05;
+      rotationState.velocityY += (rotationState.targetY - rotationState.currentY) * 0.05;
+      rotationState.velocityX *= 0.9;
+      rotationState.velocityY *= 0.93;
       rotationState.currentX += rotationState.velocityX;
       rotationState.currentY += rotationState.velocityY;
       rotationState.currentX = clamp(rotationState.currentX, -24, 24);
@@ -3286,8 +3527,7 @@
       cardOrbit.style.transform = `rotateX(${rotationState.currentX}deg) rotateY(${rotationState.currentY}deg)`;
       
       // Billboard效果：每个卡片始终正对用户
-      const cards = cardOrbit.querySelectorAll('.wish-card');
-      cards.forEach((card) => {
+      wishCards.forEach((card) => {
         // 获取卡片的原始位置
         const x = parseFloat(card.dataset.originalX) || 0;
         const y = parseFloat(card.dataset.originalY) || 0;
@@ -3413,7 +3653,7 @@
       cardOrbit.addEventListener('mousemove', (event) => {
         if (!rotationState.isDragging) return;
         const target = event.target.closest('.wish-card');
-        cardOrbit.querySelectorAll('.wish-card').forEach((card) => {
+        wishCards.forEach((card) => {
           if (card !== target) {
             card.style.scale = '1';
             const tiltInner = card.querySelector('.card-tilt');
@@ -3432,7 +3672,7 @@
       });
 
       cardOrbit.addEventListener('mouseleave', () => {
-        cardOrbit.querySelectorAll('.wish-card').forEach((card) => {
+        wishCards.forEach((card) => {
           card.style.scale = '1';
           const tiltInner = card.querySelector('.card-tilt');
           if (tiltInner) tiltInner.style.transform = 'translateZ(0px) rotateX(0deg) rotateY(0deg)';
@@ -3563,6 +3803,7 @@
       });
 
       window.addEventListener('resize', () => {
+        syncWelcomeHeroStrip();
         rotationState.autoRotate = window.innerWidth < 768 ? 0.09 : 0.16;
         rotationState.panX = 0;
         rotationState.panY = 0;
@@ -3640,9 +3881,15 @@
 
       introTimeline
         .fromTo(
+          '.welcome-hero-stage',
+          { opacity: 0.62, scale: 1.04 },
+          { opacity: 1, scale: 1, duration: 2.6 }
+        )
+        .fromTo(
           '.welcome-hero-media',
-          { scale: 1.18, opacity: 0.62 },
-          { scale: 1.06, opacity: 1, duration: 2.6 }
+          { opacity: 0.72 },
+          { opacity: 1, duration: 2.2 },
+          0
         )
         .fromTo(
           '.welcome-hero-overlay',
@@ -3681,6 +3928,7 @@
     async function init() {
       friendWishesState = await loadFriendWishes();
       ensureImageAsset('welcomeHero');
+      syncWelcomeHeroStrip();
       endingText.textContent = ENDING_MESSAGE;
       updateAudioToggleLabels();
       initParticles();
