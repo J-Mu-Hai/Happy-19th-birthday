@@ -15,6 +15,8 @@ loadLocalEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const projectRoot = __dirname;
+const birthdayPagePath = path.join(projectRoot, 'birthday-19.html');
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -26,6 +28,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use(express.static(projectRoot));
 app.use(express.static(publicDir));
 
 app.post('/api/ask', async (req, res) => {
@@ -70,7 +73,7 @@ app.post('/api/cards', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
+  res.sendFile(birthdayPagePath);
 });
 
 if (require.main === module) {

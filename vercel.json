@@ -4,6 +4,12 @@
       "runtime": "@vercel/node"
     }
   },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/birthday-19.html"
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
