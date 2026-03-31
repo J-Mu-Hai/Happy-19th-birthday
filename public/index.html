@@ -1456,8 +1456,8 @@
     </div>
   </div>
 
-  <audio id="welcomeAudio" src="./assets/audio/intro-theme.mp3" loop autoplay preload="auto"></audio>
-  <audio id="wallAudio" src="./assets/audio/wall-theme.mp3" preload="auto"></audio>
+  <audio id="welcomeAudio" data-src="./assets/audio/intro-theme.mp3" loop preload="none"></audio>
+  <audio id="wallAudio" data-src="./assets/audio/wall-theme.mp3" preload="none"></audio>
 
   <div id="endingOverlay" class="ending-overlay pointer-events-none fixed inset-0 z-[60] hidden items-center justify-center px-4">
     <div class="ending-panel glass-panel w-full max-w-3xl rounded-[32px] border border-white/15 p-6 text-center shadow-card md:p-10">
@@ -1705,6 +1705,12 @@
       welcomeHero: './assets/images/welcome-hero.png',
       wallHero: './assets/images/wall-hero.png'
     };
+    const loadedAssets = {
+      welcomeHero: false,
+      wallHero: false,
+      welcomeAudio: false,
+      wallAudio: false
+    };
 
     const ASK_ME_SUGGESTIONS = [
       '你怎么看待19岁？',
@@ -1820,6 +1826,8 @@
     let askFragmentTimer = null;
     let wallFragmentBag = [];
     let askFragmentBag = [];
+    let audioUnlocked = false;
+    let audioUnlockBound = false;
     const audioSettings = {
       introEnabled: true,
       wallEnabled: true
@@ -2428,12 +2436,71 @@
       if (memoryCounter) memoryCounter.textContent = `01 / ${String(MEMORY_LINES.length).padStart(2, '0')}`;
     }
 
+    function ensureImageAsset(key) {
+      if (loadedAssets[key]) return;
+      const assetPath = ASSET_PATHS[key];
+      if (!assetPath) return;
+
+      const cssVarName = key === 'wallHero' ? '--wall-image' : '--hero-image';
+      document.documentElement.style.setProperty(cssVarName, `url("${assetPath}")`);
+      loadedAssets[key] = true;
+    }
+
+    function ensureAudioAsset(audio, key) {
+      if (!audio || loadedAssets[key]) return;
+      const source = audio.dataset.src;
+      if (!source) return;
+      audio.src = source;
+      audio.load();
+      loadedAssets[key] = true;
+    }
+
     function safePlayAudio(audio) {
       if (!audio) return;
       const playback = audio.play();
       if (playback && typeof playback.catch === 'function') {
-        playback.catch(() => {});
+        playback.catch(() => {
+          bindAudioUnlock();
+        });
       }
+    }
+
+    function resumeAudioForCurrentStage() {
+      if (!audioUnlocked) return;
+
+      if (currentStage === 'welcome' || currentStage === 'memory') {
+        if (audioSettings.introEnabled) {
+          ensureAudioAsset(welcomeAudio, 'welcomeAudio');
+          safePlayAudio(welcomeAudio);
+        }
+        return;
+      }
+
+      if (currentStage === 'wall' || currentStage === 'ask') {
+        if (audioSettings.wallEnabled) {
+          ensureAudioAsset(wallAudio, 'wallAudio');
+          safePlayAudio(wallAudio);
+        }
+      }
+    }
+
+    function unlockAudio() {
+      audioUnlocked = true;
+      resumeAudioForCurrentStage();
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('click', unlockAudio);
+      document.removeEventListener('WeixinJSBridgeReady', unlockAudio);
+      audioUnlockBound = false;
+    }
+
+    function bindAudioUnlock() {
+      if (audioUnlockBound || audioUnlocked) return;
+      audioUnlockBound = true;
+      window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
+      window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+      window.addEventListener('click', unlockAudio, { once: true, passive: true });
+      document.addEventListener('WeixinJSBridgeReady', unlockAudio, { once: true });
     }
 
     function updateAudioToggleLabels() {
@@ -2454,6 +2521,7 @@
     function syncAudioPlayback() {
       if (currentStage === 'welcome' || currentStage === 'memory') {
         if (audioSettings.introEnabled) {
+          ensureAudioAsset(welcomeAudio, 'welcomeAudio');
           safePlayAudio(welcomeAudio);
         } else if (welcomeAudio) {
           welcomeAudio.pause();
@@ -2466,6 +2534,7 @@
 
       if (currentStage === 'wall' || currentStage === 'ask') {
         if (audioSettings.wallEnabled) {
+          ensureAudioAsset(wallAudio, 'wallAudio');
           safePlayAudio(wallAudio);
         } else if (wallAudio) {
           wallAudio.pause();
@@ -2481,6 +2550,7 @@
       updateAudioToggleLabels();
       if (audioSettings.introEnabled) {
         if (welcomeAudio) {
+          ensureAudioAsset(welcomeAudio, 'welcomeAudio');
           safePlayAudio(welcomeAudio);
         }
       } else if (welcomeAudio) {
@@ -2493,6 +2563,7 @@
       updateAudioToggleLabels();
       if (audioSettings.wallEnabled) {
         if (wallAudio) {
+          ensureAudioAsset(wallAudio, 'wallAudio');
           safePlayAudio(wallAudio);
         }
       } else if (wallAudio) {
@@ -2503,6 +2574,7 @@
     function playWelcomeAudio() {
       if (!welcomeAudio) return;
       stopWallAudio();
+      ensureAudioAsset(welcomeAudio, 'welcomeAudio');
       welcomeAudio.currentTime = 0;
       if (audioSettings.introEnabled) {
         safePlayAudio(welcomeAudio);
@@ -2520,6 +2592,7 @@
     function playWallAudio() {
       if (!wallAudio) return;
       pauseWelcomeAudio(true);
+      ensureAudioAsset(wallAudio, 'wallAudio');
       wallAudio.pause();
       wallAudio.currentTime = 0;
       wallAudio.volume = wallFragmentsShouldShow() ? WALL_AUDIO_FRAGMENT_VOLUME : WALL_AUDIO_BASE_VOLUME;
@@ -2892,6 +2965,7 @@
     function enterWall() {
       clearMemoryPlayback();
       hideEndingOverlay();
+      ensureImageAsset('wallHero');
       transitionTo('wall', () => {
         playWallAudio();
         updateWallFragmentVisibility();
@@ -3606,8 +3680,7 @@
 
     async function init() {
       friendWishesState = await loadFriendWishes();
-      document.documentElement.style.setProperty('--hero-image', `url("${ASSET_PATHS.welcomeHero}")`);
-      document.documentElement.style.setProperty('--wall-image', `url("${ASSET_PATHS.wallHero}")`);
+      ensureImageAsset('welcomeHero');
       endingText.textContent = ENDING_MESSAGE;
       updateAudioToggleLabels();
       initParticles();
@@ -3625,14 +3698,14 @@
       if (welcomeTitle) welcomeTitle.textContent = WELCOME_TITLE_DEFAULT;
       if (welcomeSubtitle) welcomeSubtitle.textContent = WELCOME_SUBTITLE_DEFAULT;
       scheduleWelcomeEasterEgg();
-      playWelcomeAudio();
+      bindAudioUnlock();
       syncAudioPlayback();
       window.setTimeout(() => {
         body.classList.add('ready');
       }, 1200);
     }
 
-    window.addEventListener('load', init);
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
