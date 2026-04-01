@@ -1456,8 +1456,8 @@
     </div>
   </div>
 
-  <audio id="welcomeAudio" src="./第一部分.mp3" loop autoplay preload="auto"></audio>
-  <audio id="wallAudio" src="./第三部分.mp3" preload="auto"></audio>
+  <audio id="welcomeAudio" src="/assets/audio/intro-theme.mp3" loop autoplay preload="auto"></audio>
+  <audio id="wallAudio" src="/assets/audio/wall-theme.mp3" preload="auto"></audio>
 
   <div id="endingOverlay" class="ending-overlay pointer-events-none fixed inset-0 z-[60] hidden items-center justify-center px-4">
     <div class="ending-panel glass-panel w-full max-w-3xl rounded-[32px] border border-white/15 p-6 text-center shadow-card md:p-10">
@@ -3603,8 +3603,8 @@
 
     async function init() {
       friendWishesState = await loadFriendWishes();
-      document.documentElement.style.setProperty('--hero-image', 'url("./3d181fca48853d748ea7f64cd5d731a0.png")');
-      document.documentElement.style.setProperty('--wall-image', 'url("./第二部分呢.png")');
+      document.documentElement.style.setProperty('--hero-image', 'url("/assets/images/welcome-hero.png")');
+      document.documentElement.style.setProperty('--wall-image', 'url("/assets/images/wall-hero.png")');
       endingText.textContent = ENDING_MESSAGE;
       updateAudioToggleLabels();
       initParticles();
