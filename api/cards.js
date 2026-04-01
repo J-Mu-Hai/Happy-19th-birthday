@@ -1,8 +1,8 @@
 const {
   loadLocalEnv,
   normalizeFriendWish,
-  loadFriendWishes,
-  saveFriendWishes
+  loadSharedFriendWishes,
+  saveSharedFriendWishes
 } = require('../lib/app-core');
 
 loadLocalEnv();
@@ -17,7 +17,8 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    return res.status(200).json({ cards: loadFriendWishes() });
+    const cards = await loadSharedFriendWishes();
+    return res.status(200).json({ cards });
   }
 
   if (req.method === 'POST') {
@@ -28,16 +29,16 @@ module.exports = async (req, res) => {
     }
 
     try {
-      const cards = loadFriendWishes();
+      const cards = await loadSharedFriendWishes();
       cards.push(nextEntry);
-      const savedCards = saveFriendWishes(cards);
+      const savedCards = await saveSharedFriendWishes(cards);
       return res.status(201).json({
         card: nextEntry,
         cards: savedCards
       });
     } catch (error) {
       return res.status(500).json({
-        error: '当前部署环境不支持持久化写入，请改用数据库或仅保留只读展示。'
+        error: '共享卡片墙暂时不可用，请检查 Vercel Blob 存储和环境变量是否已经配置。'
       });
     }
   }

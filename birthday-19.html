@@ -1448,7 +1448,7 @@
           </label>
 
           <div class="flex items-center justify-between gap-4 pt-2">
-            <p id="cardFormStatus" class="text-sm text-white/58">填写后会自动保存到当前浏览器。</p>
+            <p id="cardFormStatus" class="text-sm text-white/58">填写后会提交到共享卡片墙，其他人刷新页面后也能看到。</p>
             <button id="submitCardFormButton" class="ask-submit" type="submit">保存卡片</button>
           </div>
         </form>
@@ -3547,7 +3547,7 @@
         cardFormStatus.textContent = '卡片已保存，大家刷新页面后都能看到。';
         closeCardFormModal(true);
       } catch (error) {
-        cardFormStatus.textContent = '提交失败，请确认你是通过本地服务打开页面，并且服务端正在运行。';
+        cardFormStatus.textContent = '提交失败，请稍后再试；如果这是线上版本，请检查 Vercel Blob 存储是否已配置。';
       }
     }
 
