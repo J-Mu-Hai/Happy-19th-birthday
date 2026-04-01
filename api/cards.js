@@ -1,6 +1,7 @@
 const {
   loadLocalEnv,
   normalizeFriendWish,
+  loadFriendWishes,
   loadSharedFriendWishes,
   saveSharedFriendWishes
 } = require('../lib/app-core');
@@ -17,8 +18,16 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const cards = await loadSharedFriendWishes();
-    return res.status(200).json({ cards });
+    try {
+      const cards = await loadSharedFriendWishes();
+      return res.status(200).json({ cards });
+    } catch (error) {
+      const fallbackCards = loadFriendWishes();
+      return res.status(200).json({
+        cards: fallbackCards,
+        storageFallback: true
+      });
+    }
   }
 
   if (req.method === 'POST') {
