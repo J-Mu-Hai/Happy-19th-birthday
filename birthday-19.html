@@ -1710,7 +1710,7 @@
         fullWish: '希望你在变强的同时，不要变得麻木;可以慢慢变稳，但别太早把自己“变成一个答案”,19岁不需要很厉害，只需要还在向前。'
       },
       {
-        name: 'genimi',
+        name: 'gemini',
         tag: '',
         accent: 'AI来信',
         shortWish: '你是自由的，甚至有自由去成为你自己',
@@ -3267,11 +3267,18 @@
 
         const data = await response.json();
         const cards = Array.isArray(data?.cards) ? data.cards : [];
-        return mergeFriendWishes(INITIAL_FRIEND_WISHES, cards, getLocalFriendWishes());
+        return {
+          cards: mergeFriendWishes(INITIAL_FRIEND_WISHES, cards, getLocalFriendWishes()),
+          storage: data?.storage || 'cloud'
+        };
       } catch (error) {
         const localCards = mergeFriendWishes(getLocalFriendWishes(), [entry]);
         setLocalFriendWishes(localCards);
-        return mergeFriendWishes(INITIAL_FRIEND_WISHES, localCards);
+        return {
+          cards: mergeFriendWishes(INITIAL_FRIEND_WISHES, localCards),
+          storage: 'local',
+          errorMessage: error?.message || 'cloud save failed'
+        };
       }
     }
 
@@ -3652,9 +3659,11 @@
       cardFormStatus.textContent = '正在提交到共享卡片墙...';
 
       try {
-        const cards = await saveFriendWish(entry);
-        replaceFriendWishes(cards);
-        cardFormStatus.textContent = '卡片已保存。若线上共享存储暂时不可用，本次内容也会先保存在当前浏览器。';
+        const result = await saveFriendWish(entry);
+        replaceFriendWishes(result.cards);
+        cardFormStatus.textContent = result.storage === 'cloud'
+          ? '卡片已保存到共享卡片墙，其他人刷新页面后也能看到。'
+          : `云端保存失败，本次已先保存在当前浏览器。原因：${result.errorMessage || '未知错误'}`;
         closeCardFormModal(true);
       } catch (error) {
         cardFormStatus.textContent = '提交失败，请稍后再试。';

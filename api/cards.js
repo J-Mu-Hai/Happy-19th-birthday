@@ -3,7 +3,8 @@ const {
   normalizeFriendWish,
   loadFriendWishes,
   loadSharedFriendWishes,
-  saveSharedFriendWishes
+  saveSharedFriendWishes,
+  getBlobDebugInfo
 } = require('../lib/app-core');
 
 loadLocalEnv();
@@ -43,11 +44,14 @@ module.exports = async (req, res) => {
       const savedCards = await saveSharedFriendWishes(cards);
       return res.status(201).json({
         card: nextEntry,
-        cards: savedCards
+        cards: savedCards,
+        storage: 'cloud'
       });
     } catch (error) {
       return res.status(500).json({
-        error: '共享卡片墙暂时不可用，请检查 Vercel Blob 存储和环境变量是否已经配置。'
+        error: '共享卡片墙暂时不可用，请检查 Vercel Blob 存储配置。',
+        details: String(error?.message || error),
+        blob: getBlobDebugInfo()
       });
     }
   }
