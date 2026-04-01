@@ -3329,17 +3329,21 @@
         const x = parseFloat(card.dataset.originalX) || 0;
         const y = parseFloat(card.dataset.originalY) || 0;
         const z = parseFloat(card.dataset.originalZ) || 0;
+        const radius = parseFloat(card.dataset.wallRadius || cardOrbit.dataset.wallRadius || String(getWishWallMetrics(cardOrbit.children.length || 1).radius));
+        const verticalProgress = radius ? Math.min(1, Math.abs(y) / radius) : 0;
+        const edgeStability = 1 - (verticalProgress * 0.42);
         
         // 反向旋转，使卡片始终面对用户
-        const billboardRotateX = -rotationState.currentX;
+        const billboardRotateX = -rotationState.currentX * edgeStability;
         const billboardRotateY = -rotationState.currentY;
         
         const tiltZ = parseFloat(card.dataset.tiltZ) || 0;
-        
-        const radius = parseFloat(card.dataset.wallRadius || cardOrbit.dataset.wallRadius || String(getWishWallMetrics(cardOrbit.children.length || 1).radius));
         const depthProgress = (z + radius) / (radius * 2);
-        const scale = 0.72 + depthProgress * 0.42;
-        const opacity = 0.34 + depthProgress * 0.66;
+        const scaleBase = 0.72 + depthProgress * 0.42;
+        const opacityBase = 0.34 + depthProgress * 0.66;
+        const contentStabilityBoost = card.dataset.empty === 'true' ? 0 : verticalProgress * 0.08;
+        const scale = scaleBase + contentStabilityBoost;
+        const opacity = Math.min(1, opacityBase + (verticalProgress * 0.12));
         card.style.zIndex = `${Math.round(depthProgress * 1000)}`;
         if (card.dataset.empty !== 'true') {
           const hue = parseFloat(card.dataset.baseHue || '0');
@@ -3354,6 +3358,8 @@
         card.style.zIndex = `${Math.round(depthProgress * 1000)}`;
         card.style.opacity = `${opacity}`;
         card.style.filter = 'none';
+        card.style.backfaceVisibility = 'hidden';
+        card.style.webkitFontSmoothing = 'antialiased';
         
         // 应用3D位置、billboard效果和轻微固定倾斜
         card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) scale(${scale}) rotateX(${billboardRotateX}deg) rotateY(${billboardRotateY}deg) rotateZ(${tiltZ}deg)`;
