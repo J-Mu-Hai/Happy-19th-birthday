@@ -12,29 +12,70 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          },
-          colors: {
-            peach: '#ffb3c7',
-            lavender: '#c9b6ff',
-            goldSoft: '#f6e1a4',
-            mist: '#f5f7fb'
-          },
-          boxShadow: {
-            glow: '0 20px 60px rgba(255, 179, 199, 0.28)',
-            card: '0 18px 50px rgba(19, 18, 46, 0.35)'
-          },
-          backgroundImage: {
-            aurora:
-              'radial-gradient(circle at 20% 20%, rgba(255, 194, 214, 0.30), transparent 30%), radial-gradient(circle at 80% 0%, rgba(201, 182, 255, 0.26), transparent 28%), radial-gradient(circle at 50% 80%, rgba(246, 225, 164, 0.18), transparent 30%), linear-gradient(135deg, #261b4b 0%, #5b3f72 40%, #8f6386 70%, #f09ab0 100%)'
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif']
+            },
+            colors: {
+              peach: '#ffb3c7',
+              lavender: '#c9b6ff',
+              goldSoft: '#f6e1a4',
+              mist: '#f5f7fb'
+            },
+            boxShadow: {
+              glow: '0 20px 60px rgba(255, 179, 199, 0.28)',
+              card: '0 18px 50px rgba(19, 18, 46, 0.35)'
+            },
+            backgroundImage: {
+              aurora:
+                'radial-gradient(circle at 20% 20%, rgba(255, 194, 214, 0.30), transparent 30%), radial-gradient(circle at 80% 0%, rgba(201, 182, 255, 0.26), transparent 28%), radial-gradient(circle at 50% 80%, rgba(246, 225, 164, 0.18), transparent 30%), linear-gradient(135deg, #261b4b 0%, #5b3f72 40%, #8f6386 70%, #f09ab0 100%)'
+            }
           }
         }
-      }
-    };
+      };
+    }
+
+    if (!window.gsap) {
+      const createTimeline = () => ({
+        to() { return this; },
+        fromTo() { return this; },
+        set() { return this; }
+      });
+
+      window.gsap = {
+        to(target, vars = {}) {
+          if (typeof vars.onComplete === 'function') {
+            window.setTimeout(vars.onComplete, 0);
+          }
+          return createTimeline();
+        },
+        fromTo(target, fromVars = {}, toVars = {}) {
+          if (typeof toVars.onComplete === 'function') {
+            window.setTimeout(toVars.onComplete, 0);
+          }
+          return createTimeline();
+        },
+        set() {
+          return createTimeline();
+        },
+        timeline(config = {}) {
+          if (typeof config.onStart === 'function') {
+            window.setTimeout(config.onStart, 0);
+          }
+          if (typeof config.onComplete === 'function') {
+            window.setTimeout(config.onComplete, 0);
+          }
+          return createTimeline();
+        }
+      };
+    }
+
+    if (!window.particlesJS) {
+      window.particlesJS = function particlesFallback() {};
+    }
   </script>
   <style>
     :root {
@@ -3622,31 +3663,36 @@
     }
 
     async function init() {
-      friendWishesState = await loadFriendWishes();
-      document.documentElement.style.setProperty('--hero-image', 'url("/assets/images/welcome-hero.png")');
-      document.documentElement.style.setProperty('--wall-image', 'url("/assets/images/wall-hero.png")');
-      endingText.textContent = ENDING_MESSAGE;
-      updateAudioToggleLabels();
-      initParticles();
-      createWelcomeParticles();
-      createWallParticles();
-      createMemoryAmbientParticles();
-      renderAskSuggestions();
-      appendAskMessage('ai', '你好呀，这里是 Ask Me。你可以问我关于19岁、成长、回忆、未来，或者任何你想知道的小问题。');
-      renderWishWall();
-      bindCardTilt();
-      bindEvents();
-      updateSceneWrapTransform();
-      animateOrbit();
-      initEntranceAnimation();
-      if (welcomeTitle) welcomeTitle.textContent = WELCOME_TITLE_DEFAULT;
-      if (welcomeSubtitle) welcomeSubtitle.textContent = WELCOME_SUBTITLE_DEFAULT;
-      scheduleWelcomeEasterEgg();
-      playWelcomeAudio();
-      syncAudioPlayback();
-      window.setTimeout(() => {
-        body.classList.add('ready');
-      }, 1200);
+      try {
+        friendWishesState = await loadFriendWishes();
+        document.documentElement.style.setProperty('--hero-image', 'url("/assets/images/welcome-hero.png")');
+        document.documentElement.style.setProperty('--wall-image', 'url("/assets/images/wall-hero.png")');
+        endingText.textContent = ENDING_MESSAGE;
+        updateAudioToggleLabels();
+        initParticles();
+        createWelcomeParticles();
+        createWallParticles();
+        createMemoryAmbientParticles();
+        renderAskSuggestions();
+        appendAskMessage('ai', '你好呀，这里是 Ask Me。你可以问我关于19岁、成长、回忆、未来，或者任何你想知道的小问题。');
+        renderWishWall();
+        bindCardTilt();
+        bindEvents();
+        updateSceneWrapTransform();
+        animateOrbit();
+        initEntranceAnimation();
+        if (welcomeTitle) welcomeTitle.textContent = WELCOME_TITLE_DEFAULT;
+        if (welcomeSubtitle) welcomeSubtitle.textContent = WELCOME_SUBTITLE_DEFAULT;
+        scheduleWelcomeEasterEgg();
+        playWelcomeAudio();
+        syncAudioPlayback();
+      } catch (error) {
+        console.error('Page init failed:', error);
+      } finally {
+        window.setTimeout(() => {
+          body.classList.add('ready');
+        }, 1200);
+      }
     }
 
     window.addEventListener('load', init);
