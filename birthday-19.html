@@ -1456,8 +1456,8 @@
     </div>
   </div>
 
-  <audio id="welcomeAudio" src="/assets/audio/intro-theme.mp3" loop autoplay preload="auto"></audio>
-  <audio id="wallAudio" src="/assets/audio/wall-theme.mp3" preload="auto"></audio>
+  <audio id="welcomeAudio" src="/assets/audio/intro-theme.mp3" loop autoplay preload="auto" playsinline webkit-playsinline></audio>
+  <audio id="wallAudio" src="/assets/audio/wall-theme.mp3" preload="auto" playsinline webkit-playsinline></audio>
 
   <div id="endingOverlay" class="ending-overlay pointer-events-none fixed inset-0 z-[60] hidden items-center justify-center px-4">
     <div class="ending-panel glass-panel w-full max-w-3xl rounded-[32px] border border-white/15 p-6 text-center shadow-card md:p-10">
@@ -1820,6 +1820,8 @@
       introEnabled: true,
       wallEnabled: true
     };
+    let audioUnlocked = false;
+    let pendingAudioResume = false;
     const rotationState = {
       currentX: -8,
       currentY: 12,
@@ -2425,8 +2427,22 @@
       if (!audio) return;
       const playback = audio.play();
       if (playback && typeof playback.catch === 'function') {
-        playback.catch(() => {});
+        playback
+          .then(() => {
+            audioUnlocked = true;
+            pendingAudioResume = false;
+          })
+          .catch(() => {
+            pendingAudioResume = true;
+          });
       }
+    }
+
+    function resumeAudioAfterGesture() {
+      if (!pendingAudioResume) return;
+      audioUnlocked = true;
+      pendingAudioResume = false;
+      syncAudioPlayback();
     }
 
     function updateAudioToggleLabels() {
@@ -3497,6 +3513,10 @@
         renderWishWall();
         updateWallFragmentVisibility();
       });
+
+      document.addEventListener('pointerdown', resumeAudioAfterGesture, { passive: true });
+      document.addEventListener('keydown', resumeAudioAfterGesture);
+      document.addEventListener('touchstart', resumeAudioAfterGesture, { passive: true });
     }
 
     function openCardFormModal() {
