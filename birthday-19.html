@@ -3662,7 +3662,12 @@
         );
     }
 
+    let hasInitialized = false;
+
     async function init() {
+      if (hasInitialized) return;
+      hasInitialized = true;
+
       try {
         friendWishesState = await loadFriendWishes();
         document.documentElement.style.setProperty('--hero-image', 'url("/assets/images/welcome-hero.png")');
@@ -3695,7 +3700,14 @@
       }
     }
 
-    window.addEventListener('load', init);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+      init();
+    }
+
+    window.addEventListener('load', init, { once: true });
+    window.setTimeout(init, 2500);
   </script>
 </body>
 </html>
