@@ -1772,6 +1772,7 @@
     const WELCOME_SUBTITLE_DEFAULT = '致我探索中的 19 岁，和一路同行的你们';
     const WELCOME_TITLE_EASTER_EGG = '致还在成为的19岁';
     const WELCOME_SUBTITLE_EASTER_EGG = '致仍在路上的我，和此刻停留的你';
+    const LOCAL_FRIEND_WISHES_KEY = 'birthday-local-friend-wishes';
 
     const body = document.body;
     const pages = {
@@ -3188,42 +3189,90 @@
       return isPlaceholderValue(entry.name) || isPlaceholderValue(entry.shortWish) || isPlaceholderValue(entry.fullWish);
     }
 
+    function getLocalFriendWishes() {
+      try {
+        const raw = window.localStorage.getItem(LOCAL_FRIEND_WISHES_KEY);
+        const parsed = JSON.parse(raw || '[]');
+        return Array.isArray(parsed) ? parsed.map(cloneFriendWish) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function setLocalFriendWishes(entries) {
+      try {
+        const normalized = Array.isArray(entries) ? entries.map(cloneFriendWish) : [];
+        window.localStorage.setItem(LOCAL_FRIEND_WISHES_KEY, JSON.stringify(normalized));
+      } catch (error) {
+        // Ignore local storage failures.
+      }
+    }
+
+    function mergeFriendWishes(...groups) {
+      const merged = [];
+      const seen = new Set();
+
+      groups.flat().forEach((entry) => {
+        const next = cloneFriendWish(entry);
+        const key = JSON.stringify([
+          next.name,
+          next.tag,
+          next.accent,
+          next.shortWish,
+          next.fullWish
+        ]);
+
+        if (seen.has(key)) return;
+        seen.add(key);
+        merged.push(next);
+      });
+
+      return merged;
+    }
+
     function getApiBase() {
       return window.location.protocol === 'file:' ? ASK_ME_API_BASE : '';
     }
 
     async function loadFriendWishes() {
       const base = INITIAL_FRIEND_WISHES.map(cloneFriendWish);
+      const localCards = getLocalFriendWishes();
       try {
         const response = await fetch(`${getApiBase()}/api/cards`, {
           method: 'GET'
         });
-        if (!response.ok) return base;
+        if (!response.ok) return mergeFriendWishes(base, localCards);
         const data = await response.json();
         const cards = Array.isArray(data?.cards) ? data.cards : [];
-        return cards.map(cloneFriendWish);
+        return mergeFriendWishes(base, cards, localCards);
       } catch (error) {
-        return base;
+        return mergeFriendWishes(base, localCards);
       }
     }
 
     async function saveFriendWish(entry) {
-      const response = await fetch(`${getApiBase()}/api/cards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(entry)
-      });
+      try {
+        const response = await fetch(`${getApiBase()}/api/cards`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(entry)
+        });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data?.error || `save cards failed: ${response.status}`);
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data?.error || `save cards failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const cards = Array.isArray(data?.cards) ? data.cards : [];
+        return mergeFriendWishes(INITIAL_FRIEND_WISHES, cards, getLocalFriendWishes());
+      } catch (error) {
+        const localCards = mergeFriendWishes(getLocalFriendWishes(), [entry]);
+        setLocalFriendWishes(localCards);
+        return mergeFriendWishes(INITIAL_FRIEND_WISHES, localCards);
       }
-
-      const data = await response.json();
-      const cards = Array.isArray(data?.cards) ? data.cards : [];
-      return cards.map(cloneFriendWish);
     }
 
     function normalizeCardSubmission() {
@@ -3605,10 +3654,10 @@
       try {
         const cards = await saveFriendWish(entry);
         replaceFriendWishes(cards);
-        cardFormStatus.textContent = '卡片已保存，大家刷新页面后都能看到。';
+        cardFormStatus.textContent = '卡片已保存。若线上共享存储暂时不可用，本次内容也会先保存在当前浏览器。';
         closeCardFormModal(true);
       } catch (error) {
-        cardFormStatus.textContent = '提交失败，请稍后再试；如果这是线上版本，请检查 Vercel Blob 存储是否已配置。';
+        cardFormStatus.textContent = '提交失败，请稍后再试。';
       }
     }
 
