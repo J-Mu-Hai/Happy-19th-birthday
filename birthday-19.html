@@ -1689,14 +1689,14 @@
         fullWish: '应无所往，而生其心'
       },
       {
-        name: '豆包',
+        name: '豆花',
         tag: '',
         accent: 'AI来信',
         shortWish: '愿你在清醒独立的年纪，既有对抗孤独的勇气',
         fullWish: '愿你在清醒独立的年纪，既有对抗孤独的勇气，也有拥抱世界的温柔，19 岁，热烈且自由，赤诚又安心。'
       },
       {
-        name: 'deepseek',
+        name: 'deepsleep',
         tag: '',
         accent: 'AI来信',
         shortWish: '愿你在新的一岁里：继续保持对世界的好奇',
@@ -1872,7 +1872,7 @@
       baseY: 12,
       velocityX: 0,
       velocityY: 0,
-      autoRotate: window.innerWidth < 768 ? 0.09 : 0.16,
+      autoRotate: window.innerWidth < 768 ? 0.06 : 0.11,
       pointerInfluence: 0,
       pointerTargetInfluence: 0,
       pointerX: 0,
@@ -3262,16 +3262,24 @@
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
-          throw new Error(data?.error || `save cards failed: ${response.status}`);
+          const detail = data?.details ? ` (${data.details})` : '';
+          throw new Error((data?.error || `save cards failed: ${response.status}`) + detail);
         }
 
         const data = await response.json();
         const cards = Array.isArray(data?.cards) ? data.cards : [];
-        return mergeFriendWishes(INITIAL_FRIEND_WISHES, cards, getLocalFriendWishes());
+        return {
+          cards: mergeFriendWishes(INITIAL_FRIEND_WISHES, cards, getLocalFriendWishes()),
+          storage: data?.storage || 'cloud'
+        };
       } catch (error) {
         const localCards = mergeFriendWishes(getLocalFriendWishes(), [entry]);
         setLocalFriendWishes(localCards);
-        return mergeFriendWishes(INITIAL_FRIEND_WISHES, localCards);
+        return {
+          cards: mergeFriendWishes(INITIAL_FRIEND_WISHES, localCards),
+          storage: 'local',
+          errorMessage: error?.message || 'cloud save failed'
+        };
       }
     }
 
@@ -3297,10 +3305,10 @@
         rotationState.targetX += ((-8) - rotationState.targetX) * 0.08;
       }
       rotationState.targetX = clamp(rotationState.targetX, -24, 24);
-      rotationState.velocityX += (rotationState.targetX - rotationState.currentX) * 0.08;
-      rotationState.velocityY += (rotationState.targetY - rotationState.currentY) * 0.08;
-      rotationState.velocityX *= 0.86;
-      rotationState.velocityY *= 0.90;
+      rotationState.velocityX += (rotationState.targetX - rotationState.currentX) * 0.055;
+      rotationState.velocityY += (rotationState.targetY - rotationState.currentY) * 0.06;
+      rotationState.velocityX *= 0.82;
+      rotationState.velocityY *= 0.86;
       rotationState.currentX += rotationState.velocityX;
       rotationState.currentY += rotationState.velocityY;
       rotationState.currentX = clamp(rotationState.currentX, -24, 24);
@@ -3592,7 +3600,7 @@
       });
 
       window.addEventListener('resize', () => {
-        rotationState.autoRotate = window.innerWidth < 768 ? 0.09 : 0.16;
+        rotationState.autoRotate = window.innerWidth < 768 ? 0.06 : 0.11;
         rotationState.panX = 0;
         rotationState.panY = 0;
         rotationState.targetPanX = 0;
@@ -3652,9 +3660,11 @@
       cardFormStatus.textContent = '正在提交到共享卡片墙...';
 
       try {
-        const cards = await saveFriendWish(entry);
-        replaceFriendWishes(cards);
-        cardFormStatus.textContent = '卡片已保存。若线上共享存储暂时不可用，本次内容也会先保存在当前浏览器。';
+        const result = await saveFriendWish(entry);
+        replaceFriendWishes(result.cards);
+        cardFormStatus.textContent = result.storage === 'cloud'
+          ? '卡片已保存到共享卡片墙，其他人刷新页面后也能看到。'
+          : `云端保存失败，本次已先保存在当前浏览器。原因：${result.errorMessage || '未知错误'}`;
         closeCardFormModal(true);
       } catch (error) {
         cardFormStatus.textContent = '提交失败，请稍后再试。';
